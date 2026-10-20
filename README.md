@@ -1,2 +1,2 @@
-# Portugu-s
+# Portugues
 Aplicaciones de Portugués
