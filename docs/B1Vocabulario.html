@@ -18,7 +18,7 @@ h2{font-size:16px;margin:0 0 8px}h3{font-size:14px;margin:0 0 6px}
 #sentence{font-size:18px;line-height:1.45;margin:8px 0 12px;font-weight:650}
 .options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.options button{min-height:46px;text-align:left}
 input,select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;color:var(--ink)}
-.feedback{margin-top:9px;font-size:13px;font-weight:600;min-height:18px}.good{color:var(--good)}.bad{color:var(--bad)}
+.feedback{margin-top:9px;font-size:13px;font-weight:600;min-height:18px}.translation{margin-top:7px;padding:8px 9px;background:#eef4f0;border-radius:8px;font-size:13px;color:#334a40}.good{color:var(--good)}.bad{color:var(--bad)}
 .actions{display:flex;gap:7px;margin-top:10px}.actions button{flex:1}.hidden{display:none!important}
 .wordlist{display:grid;gap:5px;margin-top:9px}.word{border:1px solid var(--line);border-radius:8px;padding:7px 9px;display:flex;justify-content:space-between;gap:10px;font-size:13px}.word span:last-child{text-align:right;color:var(--muted)}
 footer{font-size:11px;color:var(--muted);text-align:center;padding:7px 10px}
@@ -41,7 +41,7 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:7px 10px}
 <section id="quiz" class="panel">
 <div class="row"><select id="quizCat" aria-label="Categoria"><option value="all">Todas as categorias</option><option value="Adjetivos">Adjetivos</option><option value="Verbos">Verbos</option><option value="Substantivos">Substantivos</option></select><button id="newQuiz" class="primary">Nova frase</button></div>
 <p class="small">Escolhe a palavra que completa a frase. As opções podem ser parecidas.</p>
-<div id="quizSentence"></div><div id="options" class="options"></div><div id="quizFeedback" class="feedback" aria-live="polite"></div>
+<div id="quizSentence"></div><div id="options" class="options"></div><div id="quizFeedback" class="feedback" aria-live="polite"></div><div id="quizTranslation" class="translation hidden" aria-live="polite"></div>
 <div class="actions"><button id="showQuizAnswer">Ver solução</button><button id="nextQuiz" class="primary">Seguinte →</button></div>
 </section>
 <section id="write" class="panel hidden">
@@ -49,7 +49,7 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:7px 10px}
 <p class="small">Completa a frase em português. A pista aparece em espanhol.</p>
 <div id="writeSentence"></div><p id="hint" class="small"></p>
 <form id="answerForm"><input id="typed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Escreve a palavra em português"><div class="actions"><button class="primary" type="submit">Confirmar</button><button id="showWriteAnswer" type="button">Ver solução</button><button id="nextWrite" type="button">Seguinte →</button></div></form>
-<div id="writeFeedback" class="feedback" aria-live="polite"></div>
+<div id="writeFeedback" class="feedback" aria-live="polite"></div><div id="writeTranslation" class="translation hidden" aria-live="polite"></div>
 </section>
 <section id="words" class="panel hidden">
 <h2>Banco de vocabulário</h2><p class="small">300 palavras frequentes: 100 adjetivos, 100 verbos e 100 substantivos. Pesquisa em português ou espanhol.</p>
@@ -372,28 +372,102 @@ for (const [cat, text] of Object.entries(raw)) {
     if(word && !data.some(x=>x.cat===cat && x.word===word)) data.push({word,es,cat});
   });
 }
-const examples = {
-"Adjetivos": [
-  ["A casa é ___ e tem três quartos.","A casa é {w} e tem três quartos."],
-  ["Hoje estou ___, preciso de descansar.","Hoje estou {w}, preciso de descansar."],
-  ["Este exercício é ___ para mim.","Este exercício é {w} para mim."],
-  ["O restaurante é ___, mas a comida é boa.","O restaurante é {w}, mas a comida é boa."],
-  ["A resposta parece ___ .","A resposta parece {w}."]
-],
-"Verbos": [
-  ["Amanhã quero ___ mais cedo.","Amanhã quero {w} mais cedo."],
-  ["É importante ___ antes de decidir.","É importante {w} antes de decidir."],
-  ["Costumo ___ ao fim de semana.","Costumo {w} ao fim de semana."],
-  ["Preciso de ___ isto com calma.","Preciso de {w} isto com calma."],
-  ["Vamos ___ sobre o assunto.","Vamos {w} sobre o assunto."]
-],
-"Substantivos": [
-  ["Preciso de ___ para resolver isto.","Preciso de {w} para resolver isto."],
-  ["A minha ___ fica perto do centro.","A minha {w} fica perto do centro."],
-  ["Hoje tivemos uma ___ importante.","Hoje tivemos uma {w} importante."],
-  ["Não tenho a certeza; tenho uma ___.","Não tenho a certeza; tenho uma {w}."],
-  ["A ___ começa às nove.","A {w} começa às nove."]
-]};
+// Frases revistas: cada palabra se usa en un contexto real y tiene una traducción completa.
+const exerciseBank = [
+// ADJETIVOS
+{cat:'Adjetivos',word:'difícil',esWord:'difícil',pt:'Este exercício é ___.',es:'Este ejercicio es difícil.'},
+{cat:'Adjetivos',word:'fácil',esWord:'fácil',pt:'A primeira pergunta é ___.',es:'La primera pregunta es fácil.'},
+{cat:'Adjetivos',word:'importante',esWord:'importante',pt:'É ___ chegar a horas.',es:'Es importante llegar puntual.'},
+{cat:'Adjetivos',word:'necessário',esWord:'necesario',pt:'É ___ estudar um pouco todos os dias.',es:'Es necesario estudiar un poco todos los días.'},
+{cat:'Adjetivos',word:'possível',esWord:'posible',pt:'É ___ comprar os bilhetes pela Internet.',es:'Es posible comprar las entradas por Internet.'},
+{cat:'Adjetivos',word:'errado',esWord:'equivocado',pt:'Este resultado está ___.',es:'Este resultado es incorrecto.'},
+{cat:'Adjetivos',word:'certo',esWord:'correcto',pt:'Tens a certeza de que este é o caminho ___?',es:'¿Estás seguro de que este es el camino correcto?'},
+{cat:'Adjetivos',word:'verdadeiro',esWord:'verdadero',pt:'Quero saber o motivo ___.',es:'Quiero saber el verdadero motivo.'},
+{cat:'Adjetivos',word:'claro',esWord:'claro',pt:'O resultado ficou muito ___.',es:'El resultado quedó muy claro.'},
+{cat:'Adjetivos',word:'escuro',esWord:'oscuro',pt:'Este quarto é demasiado ___.',es:'Esta habitación es demasiado oscura.'},
+{cat:'Adjetivos',word:'limpo',esWord:'limpio',pt:'Deixámos o quarto ___ e arrumado.',es:'Dejamos la habitación limpia y ordenada.'},
+{cat:'Adjetivos',word:'cheio',esWord:'lleno',pt:'O autocarro vai ___.',es:'El autobús va lleno.'},
+{cat:'Adjetivos',word:'vazio',esWord:'vacío',pt:'O copo está ___.',es:'El vaso está vacío.'},
+{cat:'Adjetivos',word:'quente',esWord:'caliente',pt:'O café ainda está muito ___.',es:'El café todavía está muy caliente.'},
+{cat:'Adjetivos',word:'frio',esWord:'frío',pt:'Hoje está ___ e está a chover.',es:'Hoy hace frío y está lloviendo.'},
+{cat:'Adjetivos',word:'forte',esWord:'fuerte',pt:'O vento está muito ___.',es:'El viento sopla muy fuerte.'},
+{cat:'Adjetivos',word:'fraco',esWord:'débil',pt:'O sinal de Internet está ___.',es:'La señal de Internet es débil.'},
+{cat:'Adjetivos',word:'rápido',esWord:'rápido',pt:'Este comboio é mais ___ do que o autocarro.',es:'Este tren es más rápido que el autobús.'},
+{cat:'Adjetivos',word:'lento',esWord:'lento',pt:'O computador está muito ___.',es:'El ordenador va muy lento.'},
+{cat:'Adjetivos',word:'feliz',esWord:'feliz',pt:'Fiquei muito ___ com a notícia.',es:'Me alegré mucho con la noticia.'},
+{cat:'Adjetivos',word:'cansado',esWord:'cansado',pt:'Estou ___ porque dormi pouco.',es:'Estoy cansado porque dormí poco.'},
+{cat:'Adjetivos',word:'saudável',esWord:'saludable',pt:'Uma alimentação variada é ___.',es:'Una alimentación variada es saludable.'},
+{cat:'Adjetivos',word:'caro',esWord:'caro',pt:'Este restaurante é demasiado ___.',es:'Este restaurante es demasiado caro.'},
+{cat:'Adjetivos',word:'barato',esWord:'barato',pt:'Encontrámos um hotel confortável e ___.',es:'Encontramos un hotel cómodo y barato.'},
+{cat:'Adjetivos',word:'útil',esWord:'útil',pt:'Esta aplicação é muito ___ para estudar.',es:'Esta aplicación es muy útil para estudiar.'},
+{cat:'Adjetivos',word:'seguro',esWord:'seguro',pt:'Este bairro é bastante ___ à noite.',es:'Este barrio es bastante seguro por la noche.'},
+{cat:'Adjetivos',word:'perigoso',esWord:'peligroso',pt:'É ___ atravessar a estrada sem olhar.',es:'Es peligroso cruzar la carretera sin mirar.'},
+{cat:'Adjetivos',word:'simpático',esWord:'simpático',pt:'O funcionário foi muito ___.',es:'El empleado fue muy amable.'},
+{cat:'Adjetivos',word:'inteligente',esWord:'inteligente',pt:'Foi uma decisão ___.',es:'Fue una decisión inteligente.'},
+{cat:'Adjetivos',word:'interessante',esWord:'interesante',pt:'O documentário foi bastante ___.',es:'El documental fue bastante interesante.'},
+// VERBOS: a lacuna pede o infinitivo; a tradução é idiomática, não palavra por palavra.
+{cat:'Verbos',word:'crescer',esWord:'crecer',pt:'As crianças precisam de espaço para ___.',es:'Los niños necesitan espacio para crecer.'},
+{cat:'Verbos',word:'resolver',esWord:'resolver',pt:'Preciso de ___ isto com calma.',es:'Necesito resolver esto con calma.'},
+{cat:'Verbos',word:'acordar',esWord:'despertarse',pt:'Amanhã tenho de ___ às sete.',es:'Mañana tengo que despertarme a las siete.'},
+{cat:'Verbos',word:'cozinhar',esWord:'cocinar',pt:'Ao domingo, gosto de ___ para a família.',es:'Los domingos me gusta cocinar para la familia.'},
+{cat:'Verbos',word:'mudar',esWord:'cambiar',pt:'Decidimos ___ de casa no próximo mês.',es:'Decidimos cambiarnos de casa el mes que viene.'},
+{cat:'Verbos',word:'compreender',esWord:'comprender',pt:'Não consigo ___ esta explicação.',es:'No consigo comprender esta explicación.'},
+{cat:'Verbos',word:'pagar',esWord:'pagar',pt:'Tenho de ___ a conta antes de sair.',es:'Tengo que pagar la cuenta antes de salir.'},
+{cat:'Verbos',word:'caminhar',esWord:'caminar',pt:'Costumamos ___ junto ao mar ao fim da tarde.',es:'Solemos caminar junto al mar al final de la tarde.'},
+{cat:'Verbos',word:'pensar',esWord:'pensar',pt:'Preciso de ___ melhor antes de responder.',es:'Necesito pensar mejor antes de responder.'},
+{cat:'Verbos',word:'aprender',esWord:'aprender',pt:'Quero ___ português europeu.',es:'Quiero aprender portugués europeo.'},
+{cat:'Verbos',word:'telefonar',esWord:'llamar por teléfono',pt:'Vou ___ ao médico esta tarde.',es:'Voy a llamar al médico esta tarde.'},
+{cat:'Verbos',word:'sair',esWord:'salir',pt:'Temos de ___ de casa às oito.',es:'Tenemos que salir de casa a las ocho.'},
+{cat:'Verbos',word:'dizer',esWord:'decir',pt:'Podes ___ a verdade, por favor?',es:'¿Puedes decir la verdad, por favor?'},
+{cat:'Verbos',word:'viajar',esWord:'viajar',pt:'Gostávamos de ___ por Portugal de comboio.',es:'Nos gustaría viajar por Portugal en tren.'},
+{cat:'Verbos',word:'ler',esWord:'leer',pt:'É importante ___ as instruções antes de começar.',es:'Es importante leer las instrucciones antes de empezar.'},
+{cat:'Verbos',word:'fechar',esWord:'cerrar',pt:'Não te esqueças de ___ a porta.',es:'No te olvides de cerrar la puerta.'},
+{cat:'Verbos',word:'escolher',esWord:'elegir',pt:'Ainda não conseguimos ___ um destino para as férias.',es:'Todavía no hemos conseguido elegir un destino para las vacaciones.'},
+{cat:'Verbos',word:'chegar',esWord:'llegar',pt:'Se sairmos agora, vamos ___ a horas.',es:'Si salimos ahora, vamos a llegar puntuales.'},
+{cat:'Verbos',word:'esperar',esWord:'esperar',pt:'Temos de ___ pelo próximo comboio.',es:'Tenemos que esperar al próximo tren.'},
+{cat:'Verbos',word:'esquecer',esWord:'olvidar',pt:'Tento não me ___ dos nomes.',es:'Intento no olvidarme de los nombres.'},
+{cat:'Verbos',word:'perguntar',esWord:'preguntar',pt:'Podes ___ ao professor quando começa o teste?',es:'¿Puedes preguntarle al profesor cuándo empieza el examen?'},
+{cat:'Verbos',word:'responder',esWord:'responder',pt:'Não sei como ___ a esta pergunta.',es:'No sé cómo responder a esta pregunta.'},
+{cat:'Verbos',word:'conseguir',esWord:'conseguir',pt:'Espero ___ acabar o trabalho hoje.',es:'Espero conseguir terminar el trabajo hoy.'},
+{cat:'Verbos',word:'melhorar',esWord:'mejorar',pt:'Quero ___ a minha pronúncia.',es:'Quiero mejorar mi pronunciación.'},
+{cat:'Verbos',word:'diminuir',esWord:'disminuir',pt:'Precisamos de ___ o consumo de energia.',es:'Necesitamos disminuir el consumo de energía.'},
+{cat:'Verbos',word:'trazer',esWord:'traer',pt:'Podes ___ os documentos amanhã?',es:'¿Puedes traer los documentos mañana?'},
+{cat:'Verbos',word:'deixar',esWord:'dejar',pt:'Vou ___ as chaves em cima da mesa.',es:'Voy a dejar las llaves encima de la mesa.'},
+{cat:'Verbos',word:'descansar',esWord:'descansar',pt:'Depois do almoço, gosto de ___ um pouco.',es:'Después de comer, me gusta descansar un poco.'},
+{cat:'Verbos',word:'conduzir',esWord:'conducir',pt:'Não gosto de ___ quando está a chover muito.',es:'No me gusta conducir cuando llueve mucho.'},
+{cat:'Verbos',word:'oferecer',esWord:'regalar',pt:'Quero ___ um livro à minha irmã.',es:'Quiero regalarle un libro a mi hermana.'},
+// SUBSTANTIVOS
+{cat:'Substantivos',word:'dúvida',esWord:'duda',pt:'Tenho uma ___ sobre o exercício.',es:'Tengo una duda sobre el ejercicio.'},
+{cat:'Substantivos',word:'casa',esWord:'casa',pt:'A nossa ___ fica perto da estação.',es:'Nuestra casa está cerca de la estación.'},
+{cat:'Substantivos',word:'tempo',esWord:'tiempo',pt:'Hoje não tenho ___ para acabar tudo.',es:'Hoy no tengo tiempo para terminarlo todo.'},
+{cat:'Substantivos',word:'trabalho',esWord:'trabajo',pt:'Tenho muito ___ para fazer esta semana.',es:'Tengo mucho trabajo que hacer esta semana.'},
+{cat:'Substantivos',word:'pergunta',esWord:'pregunta',pt:'Posso fazer uma ___?',es:'¿Puedo hacer una pregunta?'},
+{cat:'Substantivos',word:'resposta',esWord:'respuesta',pt:'Ainda não sei a ___ correta.',es:'Todavía no sé la respuesta correcta.'},
+{cat:'Substantivos',word:'problema',esWord:'problema',pt:'Precisamos de encontrar uma solução para este ___.',es:'Necesitamos encontrar una solución para este problema.'},
+{cat:'Substantivos',word:'solução',esWord:'solución',pt:'Finalmente encontrámos uma ___.',es:'Por fin encontramos una solución.'},
+{cat:'Substantivos',word:'lugar',esWord:'lugar',pt:'Este é um bom ___ para estudar.',es:'Este es un buen lugar para estudiar.'},
+{cat:'Substantivos',word:'cidade',esWord:'ciudad',pt:'A minha ___ tem muitos jardins.',es:'Mi ciudad tiene muchos jardines.'},
+{cat:'Substantivos',word:'viagem',esWord:'viaje',pt:'A ___ de comboio demorou três horas.',es:'El viaje en tren duró tres horas.'},
+{cat:'Substantivos',word:'quarto',esWord:'habitación',pt:'O ___ do hotel tem vista para o mar.',es:'La habitación del hotel tiene vistas al mar.'},
+{cat:'Substantivos',word:'cozinha',esWord:'cocina',pt:'A ___ cheira a pão acabado de fazer.',es:'La cocina huele a pan recién hecho.'},
+{cat:'Substantivos',word:'janela',esWord:'ventana',pt:'Abre a ___ para entrar ar fresco.',es:'Abre la ventana para que entre aire fresco.'},
+{cat:'Substantivos',word:'água',esWord:'agua',pt:'Bebo muita ___ durante o dia.',es:'Bebo mucha agua a lo largo del día.'},
+{cat:'Substantivos',word:'comida',esWord:'comida',pt:'A ___ portuguesa é muito variada.',es:'La comida portuguesa es muy variada.'},
+{cat:'Substantivos',word:'dinheiro',esWord:'dinero',pt:'Não trouxe ___ suficiente para pagar.',es:'No traje suficiente dinero para pagar.'},
+{cat:'Substantivos',word:'preço',esWord:'precio',pt:'O ___ deste livro é razoável.',es:'El precio de este libro es razonable.'},
+{cat:'Substantivos',word:'saúde',esWord:'salud',pt:'Fazer exercício é bom para a ___.',es:'Hacer ejercicio es bueno para la salud.'},
+{cat:'Substantivos',word:'médico',esWord:'médico',pt:'Marquei uma consulta com o ___.',es:'He pedido cita con el médico.'},
+{cat:'Substantivos',word:'cabeça',esWord:'cabeza',pt:'Estou com dor de ___.',es:'Me duele la cabeza.'},
+{cat:'Substantivos',word:'palavra',esWord:'palabra',pt:'Não conheço esta ___.',es:'No conozco esta palabra.'},
+{cat:'Substantivos',word:'língua',esWord:'lengua',pt:'O português é uma ___ românica.',es:'El portugués es una lengua romance.'},
+{cat:'Substantivos',word:'informação',esWord:'información',pt:'Preciso de mais ___ sobre o curso.',es:'Necesito más información sobre el curso.'},
+{cat:'Substantivos',word:'razão',esWord:'razón',pt:'Acho que tens ___.',es:'Creo que tienes razón.'},
+{cat:'Substantivos',word:'verdade',esWord:'verdad',pt:'Diz-me a ___, por favor.',es:'Dime la verdad, por favor.'},
+{cat:'Substantivos',word:'notícia',esWord:'noticia',pt:'Recebi uma boa ___ hoje de manhã.',es:'Esta mañana recibí una buena noticia.'},
+{cat:'Substantivos',word:'família',esWord:'familia',pt:'Vou passar o fim de semana com a minha ___.',es:'Voy a pasar el fin de semana con mi familia.'},
+{cat:'Substantivos',word:'amigo',esWord:'amigo',pt:'O meu ___ vem jantar cá a casa.',es:'Mi amigo viene a cenar a casa.'},
+{cat:'Substantivos',word:'oportunidade',esWord:'oportunidad',pt:'Esta é uma boa ___ para praticar português.',es:'Esta es una buena oportunidad para practicar portugués.'}
+];
 const confusion = {
 "dúvida":["dívida","dúvida"],"dívida":["dúvida","dívida"],"comprimento":["cumprimento","comprimento"],"cumprimento":["comprimento","cumprimento"],
 "descrição":["discrição","descrição"],"discrição":["descrição","discrição"],"eminente":["iminente","eminente"],"iminente":["eminente","iminente"],
@@ -403,49 +477,48 @@ const confusion = {
 "aprender":["apreender","aprender"],"apreender":["aprender","apreender"],"descriminar":["discriminar","descriminar"],"discriminar":["descriminar","discriminar"],
 "comprido":["cumprido","comprido"],"cumprido":["comprido","cumprido"],"ratificar":["retificar","ratificar"],"retificar":["ratificar","retificar"]
 };
-let correct=0, answered=0, currentQuiz=null, currentWrite=null, quizDone=false, writeDone=false;
+let correct=0, answered=0, currentQuiz=null, currentWrite=null, currentQuizTemplate=null, currentWriteTemplate=null, quizDone=false, writeDone=false;
 const $=id=>document.getElementById(id);
 function norm(s){return s.toLocaleLowerCase('pt-PT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ')}
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function pool(cat){return data.filter(x=>cat==='all'||x.cat===cat)}
-function sampleSentence(item){const t=pick(examples[item.cat]); return t[0].replace('___','<strong>_____</strong>')}
-function sentenceFor(item){const t=pick(examples[item.cat]);return t[0].replace('___','<strong>_____</strong>')}
 function updateStats(){$('correct').textContent=correct;$('answered').textContent=answered;$('accuracy').textContent=answered?Math.round(correct/answered*100)+'%':'—'}
 function record(ok){answered++;if(ok)correct++;updateStats()}
+function showTranslation(target, exercise){const el=$(target);el.textContent='Traducción: '+exercise.es;el.classList.remove('hidden')}
+function exercisesFor(cat){return exerciseBank.filter(x=>cat==='all'||x.cat===cat)}
+function matchingWord(ex){return data.find(x=>x.cat===ex.cat&&x.word===ex.word)||{word:ex.word,es:ex.esWord,cat:ex.cat}}
 function makeQuiz(){
- const arr=pool($('quizCat').value); if(!arr.length)return;
- currentQuiz=pick(arr); quizDone=false;
- const template=pick(examples[currentQuiz.cat])[0];
- $('quizSentence').innerHTML=template.replace('___','<strong>_____</strong>');
- $('quizFeedback').textContent='';$('quizFeedback').className='feedback';
- let opts=[];
- const known=confusion[currentQuiz.word];
- if(known){opts=known.filter(w=>w!==currentQuiz.word).map(w=>data.find(x=>x.word===w&&x.cat===currentQuiz.cat)||({word:w,es:'',cat:currentQuiz.cat})).slice(0,2)}
+ const arr=exercisesFor($('quizCat').value);if(!arr.length)return;
+ currentQuiz=pick(arr);quizDone=false;
+ $('quizSentence').innerHTML=currentQuiz.pt.replace('___','<strong>_____</strong>');
+ $('quizFeedback').textContent='';$('quizFeedback').className='feedback';$('quizTranslation').textContent='';$('quizTranslation').classList.add('hidden');
+ const answer=matchingWord(currentQuiz);let opts=[];
+ const known=confusion[currentQuiz.word]||[];
+ known.filter(w=>w!==currentQuiz.word).forEach(w=>{if(opts.length<2&&!opts.some(o=>o.word===w))opts.push({word:w,es:(data.find(x=>x.word===w)||{}).es||''})});
  const same=arr.filter(x=>x.word!==currentQuiz.word&&!opts.some(o=>o.word===x.word));
- while(opts.length<3&&same.length){const i=Math.floor(Math.random()*same.length);opts.push(same.splice(i,1)[0])}
- opts=opts.slice(0,3);opts.push(currentQuiz);opts.sort(()=>Math.random()-.5);
+ while(opts.length<3&&same.length){const i=Math.floor(Math.random()*same.length);const x=same.splice(i,1)[0];if(!opts.some(o=>o.word===x.word))opts.push(matchingWord(x));}
+ opts=opts.slice(0,3);opts.push(answer);opts.sort(()=>Math.random()-.5);
  const box=$('options');box.innerHTML='';
  opts.forEach(item=>{const b=document.createElement('button');b.textContent=item.word;b.onclick=()=>answerQuiz(item,b);box.appendChild(b)});
 }
 function answerQuiz(item,button){
  if(quizDone)return;quizDone=true;const ok=item.word===currentQuiz.word;record(ok);
  [...$('options').children].forEach(b=>{b.disabled=true;if(b.textContent===currentQuiz.word)b.style.borderColor='var(--good)'});
- $('quizFeedback').textContent=ok?'Muito bem!':'A resposta correta é: '+currentQuiz.word+' — '+currentQuiz.es;
- $('quizFeedback').className='feedback '+(ok?'good':'bad');
+ $('quizFeedback').textContent=ok?'Muito bem!':'A resposta correta é: '+currentQuiz.word+' — '+currentQuiz.esWord;
+ $('quizFeedback').className='feedback '+(ok?'good':'bad');showTranslation('quizTranslation',currentQuiz);
 }
 function makeWrite(){
- const arr=pool($('writeCat').value);if(!arr.length)return;
+ const arr=exercisesFor($('writeCat').value);if(!arr.length)return;
  currentWrite=pick(arr);writeDone=false;
- const template=pick(examples[currentWrite.cat])[0];
- $('writeSentence').innerHTML=template.replace('___','<strong>_____</strong>');
- $('hint').textContent='Pista em espanhol: '+currentWrite.es+' · '+currentWrite.cat.slice(0,-1).toLowerCase();
- $('typed').value='';$('typed').disabled=false;$('writeFeedback').textContent='';$('writeFeedback').className='feedback';
+ $('writeSentence').innerHTML=currentWrite.pt.replace('___','<strong>_____</strong>');
+ $('hint').textContent='Pista em espanhol: '+currentWrite.esWord+' · '+currentWrite.cat.slice(0,-1).toLowerCase();
+ $('typed').value='';$('typed').disabled=false;$('writeFeedback').textContent='';$('writeFeedback').className='feedback';$('writeTranslation').textContent='';$('writeTranslation').classList.add('hidden');
 }
-$('answerForm').addEventListener('submit',e=>{e.preventDefault();if(writeDone)return;const val=$('typed').value;if(!val.trim()){ $('writeFeedback').textContent='Escreve uma resposta primeiro.';return}
- writeDone=true;const ok=norm(val)===norm(currentWrite.word);record(ok);
- $('typed').disabled=true;$('writeFeedback').textContent=ok?'Muito bem!':'Resposta: '+currentWrite.word+' — '+currentWrite.es;$('writeFeedback').className='feedback '+(ok?'good':'bad')});
-$('showQuizAnswer').onclick=()=>{if(!currentQuiz)return;$('quizFeedback').textContent='Solução: '+currentQuiz.word+' — '+currentQuiz.es;$('quizFeedback').className='feedback';};
-$('showWriteAnswer').onclick=()=>{if(!currentWrite)return;$('writeFeedback').textContent='Solução: '+currentWrite.word+' — '+currentWrite.es;$('writeFeedback').className='feedback';};
+$('answerForm').addEventListener('submit',e=>{e.preventDefault();if(writeDone)return;const val=$('typed').value;if(!val.trim()){$('writeFeedback').textContent='Escreve uma resposta primeiro.';return}
+ writeDone=true;const ok=norm(val)===norm(currentWrite.word);record(ok);$('typed').disabled=true;
+ $('writeFeedback').textContent=ok?'Muito bem!':'Resposta correta: '+currentWrite.word+' — '+currentWrite.esWord;$('writeFeedback').className='feedback '+(ok?'good':'bad');showTranslation('writeTranslation',currentWrite)});
+$('showQuizAnswer').onclick=()=>{if(!currentQuiz)return;$('quizFeedback').textContent='Solução: '+currentQuiz.word+' — '+currentQuiz.esWord;$('quizFeedback').className='feedback';showTranslation('quizTranslation',currentQuiz)};
+$('showWriteAnswer').onclick=()=>{if(!currentWrite)return;$('writeFeedback').textContent='Solução: '+currentWrite.word+' — '+currentWrite.esWord;$('writeFeedback').className='feedback';showTranslation('writeTranslation',currentWrite)};
 $('newQuiz').onclick=makeQuiz;$('nextQuiz').onclick=makeQuiz;$('newWrite').onclick=makeWrite;$('nextWrite').onclick=makeWrite;
 $('quizCat').onchange=makeQuiz;$('writeCat').onchange=makeWrite;
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{
