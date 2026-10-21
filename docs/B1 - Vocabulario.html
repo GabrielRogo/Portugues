@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#174c43">
+<title>Vocabulário · Português europeu</title>
+<style>
+:root{--bg:#f4f7f5;--card:#fff;--ink:#18312c;--muted:#63736e;--green:#176b57;--line:#dce6e1;--bad:#a62e2e;--good:#176b43}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:#174c43;color:white;padding:14px 15px 12px}header h1{font-size:21px;margin:0 0 3px}header p{font-size:12px;margin:0;opacity:.9}
+main{max-width:720px;margin:auto;padding:10px 11px 24px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:9px}
+button,select,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 9px;font-weight:650}
+.tabs button{font-size:13px;padding:10px 4px}.tabs button.active,.primary{background:var(--green);color:white;border-color:var(--green)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px;margin-bottom:9px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.row>*{flex:1}.small{font-size:12px;color:var(--muted)}.stats{display:flex;gap:8px;margin:0 0 9px}.stat{background:#e7efeb;border-radius:9px;padding:7px 10px;flex:1;font-size:12px}.stat b{display:block;font-size:17px}
+h2{font-size:16px;margin:0 0 8px}h3{font-size:14px;margin:0 0 6px}
+#sentence{font-size:18px;line-height:1.45;margin:8px 0 12px;font-weight:650}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.options button{min-height:46px;text-align:left}
+input,select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:white;color:var(--ink)}
+.feedback{margin-top:9px;font-size:13px;font-weight:600;min-height:18px}.good{color:var(--good)}.bad{color:var(--bad)}
+.actions{display:flex;gap:7px;margin-top:10px}.actions button{flex:1}.hidden{display:none!important}
+.wordlist{display:grid;gap:5px;margin-top:9px}.word{border:1px solid var(--line);border-radius:8px;padding:7px 9px;display:flex;justify-content:space-between;gap:10px;font-size:13px}.word span:last-child{text-align:right;color:var(--muted)}
+footer{font-size:11px;color:var(--muted);text-align:center;padding:7px 10px}
+@media(max-width:380px){body{font-size:14px}header{padding:12px}main{padding:8px}.panel{padding:10px}.tabs button{font-size:12px}#sentence{font-size:17px}.options button{padding:9px 7px}}
+</style>
+</head>
+<body>
+<header><h1>Vocabulário</h1><p>Português europeu · B1–B2 · funciona offline</p></header>
+<main>
+<div class="tabs">
+<button class="active" data-view="quiz">Escolha múltipla</button>
+<button data-view="write">Escrever</button>
+<button data-view="words">Vocabulário</button>
+</div>
+<div class="stats">
+<div class="stat">Acertos<b id="correct">0</b></div>
+<div class="stat">Respostas<b id="answered">0</b></div>
+<div class="stat">Precisão<b id="accuracy">—</b></div>
+</div>
+<section id="quiz" class="panel">
+<div class="row"><select id="quizCat" aria-label="Categoria"><option value="all">Todas as categorias</option><option value="Adjetivos">Adjetivos</option><option value="Verbos">Verbos</option><option value="Substantivos">Substantivos</option></select><button id="newQuiz" class="primary">Nova frase</button></div>
+<p class="small">Escolhe a palavra que completa a frase. As opções podem ser parecidas.</p>
+<div id="quizSentence"></div><div id="options" class="options"></div><div id="quizFeedback" class="feedback" aria-live="polite"></div>
+<div class="actions"><button id="showQuizAnswer">Ver solução</button><button id="nextQuiz" class="primary">Seguinte →</button></div>
+</section>
+<section id="write" class="panel hidden">
+<div class="row"><select id="writeCat" aria-label="Categoria"><option value="all">Todas as categorias</option><option value="Adjetivos">Adjetivos</option><option value="Verbos">Verbos</option><option value="Substantivos">Substantivos</option></select><button id="newWrite" class="primary">Nova frase</button></div>
+<p class="small">Completa a frase em português. A pista aparece em espanhol.</p>
+<div id="writeSentence"></div><p id="hint" class="small"></p>
+<form id="answerForm"><input id="typed" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Escreve a palavra em português"><div class="actions"><button class="primary" type="submit">Confirmar</button><button id="showWriteAnswer" type="button">Ver solução</button><button id="nextWrite" type="button">Seguinte →</button></div></form>
+<div id="writeFeedback" class="feedback" aria-live="polite"></div>
+</section>
+<section id="words" class="panel hidden">
+<h2>Banco de vocabulário</h2><p class="small">300 palavras frequentes: 100 adjetivos, 100 verbos e 100 substantivos. Pesquisa em português ou espanhol.</p>
+<input id="search" placeholder="Pesquisar palavra ou tradução…" autocomplete="off">
+<div class="row" style="margin-top:7px"><select id="listCat" aria-label="Filtrar categoria"><option value="all">Todas as categorias</option><option value="Adjetivos">Adjetivos</option><option value="Verbos">Verbos</option><option value="Substantivos">Substantivos</option></select><span id="count" class="small" style="text-align:right">300 palavras</span></div>
+<div id="wordlist" class="wordlist"></div>
+</section>
+<footer>Português de Portugal · Conteúdo incluído no ficheiro, sem Internet.</footer>
+</main>
+<script>
+const raw = {
+"Adjetivos": `bom|bueno
+mau|malo
+grande|grande
+pequeno|pequeño
+alto|alto
+baixo|bajo
+longo|largo
+curto|corto
+novo|nuevo
+velho|viejo
+jovem|joven
+antigo|antiguo
+moderno|moderno
+bonito|bonito
+feio|feo
+bonito|bonito
+lindo|precioso
+fácil|fácil
+difícil|difícil
+simples|sencillo
+complicado|complicado
+importante|importante
+necessário|necesario
+possível|posible
+impossível|imposible
+certo|correcto
+errado|equivocado
+verdadeiro|verdadero
+falso|falso
+claro|claro
+escuro|oscuro
+limpo|limpio
+sujo|sucio
+cheio|lleno
+vazio|vacío
+aberto|abierto
+fechado|cerrado
+quente|caliente
+frio|frío
+morno|templado
+fresco|fresco
+seco|seco
+molhado|mojado
+duro|duro
+macio|blando
+forte|fuerte
+fraco|débil
+rápido|rápido
+lento|lento
+cedo|temprano
+tarde|tarde
+feliz|feliz
+contente|contento
+triste|triste
+zangado|enfadado
+calmo|tranquilo
+nervoso|nervioso
+cansado|cansado
+doente|enfermo
+saudável|saludable
+rico|rico
+pobre|pobre
+caro|caro
+barato|barato
+gratuito|gratuito
+útil|útil
+inútil|inútil
+seguro|seguro
+perigoso|peligroso
+possessivo|posesivo
+generoso|generoso
+simpático|simpático
+antipático|antipático
+educado|educado
+mal-educado|maleducado
+inteligente|inteligente
+esperto|listo
+tonto|tonto
+interessante|interesante
+aborrecido|aburrido
+divertido|divertido
+engraçado|gracioso
+sério|serio
+responsável|responsable
+livre|libre
+ocupado|ocupado
+disponível|disponible
+diferente|diferente
+igual|igual
+parecido|parecido
+especial|especial
+comum|común
+normal|normal
+estranho|extraño
+provável|probable
+necessário|necesario
+principal|principal
+público|público
+privado|privado
+local|local
+nacional|nacional
+internacional|internacional`,
+"Verbos": `ser|ser
+estar|estar
+ter|tener
+haver|haber
+fazer|hacer
+ir|ir
+vir|venir
+dizer|decir
+falar|hablar
+ver|ver
+olhar|mirar
+ouvir|oír
+escutar|escuchar
+saber|saber
+conhecer|conocer
+poder|poder
+querer|querer
+dever|deber
+precisar|necesitar
+ficar|quedarse
+deixar|dejar
+levar|llevar
+trazer|traer
+pôr|poner
+dar|dar
+receber|recibir
+encontrar|encontrar
+procurar|buscar
+perder|perder
+ganhar|ganar
+comprar|comprar
+vender|vender
+pagar|pagar
+custar|costar
+usar|usar
+abrir|abrir
+fechar|cerrar
+começar|empezar
+acabar|terminar
+continuar|continuar
+parar|parar
+esperar|esperar
+chegar|llegar
+partir|salir
+sair|salir
+entrar|entrar
+voltar|volver
+passar|pasar
+acontecer|suceder
+viver|vivir
+morar|vivir
+nascer|nacer
+morrer|morir
+crescer|crecer
+trabalhar|trabajar
+estudar|estudiar
+aprender|aprender
+ensinar|enseñar
+ler|leer
+escrever|escribir
+contar|contar
+pensar|pensar
+acreditar|creer
+achar|pensar
+sentir|sentir
+gostar|gustar
+adorar|adorar
+preferir|preferir
+amar|amar
+odiar|odiar
+comer|comer
+beber|beber
+cozinhar|cocinar
+dormir|dormir
+acordar|despertarse
+descansar|descansar
+andar|caminar
+correr|correr
+caminhar|pasear
+conduzir|conducir
+viajar|viajar
+telefonar|llamar por teléfono
+chamar|llamar
+ajudar|ayudar
+precisar|necesitar
+tentar|intentar
+conseguir|conseguir
+escolher|elegir
+decidir|decidir
+resolver|resolver
+explicar|explicar
+entender|entender
+compreender|comprender
+perguntar|preguntar
+responder|responder
+pedir|pedir
+oferecer|ofrecer
+mostrar|mostrar
+lembrar|recordar
+esquecer|olvidar
+mudar|cambiar`,
+"Substantivos": `casa|casa
+tempo|tiempo
+dia|día
+ano|año
+vez|vez
+pessoa|persona
+homem|hombre
+mulher|mujer
+criança|niño
+família|familia
+amigo|amigo
+trabalho|trabajo
+escola|escuela
+aluno|alumno
+professor|profesor
+livro|libro
+palavra|palabra
+língua|lengua
+frase|frase
+pergunta|pregunta
+resposta|respuesta
+problema|problema
+solução|solución
+coisa|cosa
+parte|parte
+lugar|lugar
+cidade|ciudad
+país|país
+mundo|mundo
+rua|calle
+carro|coche
+comboio|tren
+autocarro|autobús
+bicicleta|bicicleta
+viagem|viaje
+férias|vacaciones
+hotel|hotel
+quarto|habitación
+cozinha|cocina
+porta|puerta
+janela|ventana
+mesa|mesa
+cadeira|silla
+cama|cama
+água|agua
+comida|comida
+pão|pan
+leite|leche
+café|café
+chá|té
+fruta|fruta
+legume|verdura
+carne|carne
+peixe|pescado
+dinheiro|dinero
+preço|precio
+compra|compra
+loja|tienda
+mercado|mercado
+conta|cuenta
+banco|banco
+saúde|salud
+doença|enfermedad
+médico|médico
+hospital|hospital
+corpo|cuerpo
+cabeça|cabeza
+mão|mano
+olho|ojo
+voz|voz
+nome|nombre
+número|número
+ideia|idea
+história|historia
+notícia|noticia
+informação|información
+razão|razón
+dúvida|duda
+certeza|certeza
+verdade|verdad
+mentira|mentira
+direito|derecho
+lei|ley
+governo|gobierno
+empresa|empresa
+equipa|equipo
+grupo|grupo
+reunião|reunión
+projeto|proyecto
+resultado|resultado
+mudança|cambio
+diferença|diferencia
+oportunidade|oportunidad
+necessidade|necesidad
+objetivo|objetivo
+escolha|elección
+decisão|decisión
+medo|miedo
+amor|amor
+vida|vida`
+};
+const data = [];
+for (const [cat, text] of Object.entries(raw)) {
+  text.trim().split('\n').forEach(line => {
+    const [word, es] = line.split('|').map(s=>s.trim());
+    if(word && !data.some(x=>x.cat===cat && x.word===word)) data.push({word,es,cat});
+  });
+}
+const examples = {
+"Adjetivos": [
+  ["A casa é ___ e tem três quartos.","A casa é {w} e tem três quartos."],
+  ["Hoje estou ___, preciso de descansar.","Hoje estou {w}, preciso de descansar."],
+  ["Este exercício é ___ para mim.","Este exercício é {w} para mim."],
+  ["O restaurante é ___, mas a comida é boa.","O restaurante é {w}, mas a comida é boa."],
+  ["A resposta parece ___ .","A resposta parece {w}."]
+],
+"Verbos": [
+  ["Amanhã quero ___ mais cedo.","Amanhã quero {w} mais cedo."],
+  ["É importante ___ antes de decidir.","É importante {w} antes de decidir."],
+  ["Costumo ___ ao fim de semana.","Costumo {w} ao fim de semana."],
+  ["Preciso de ___ isto com calma.","Preciso de {w} isto com calma."],
+  ["Vamos ___ sobre o assunto.","Vamos {w} sobre o assunto."]
+],
+"Substantivos": [
+  ["Preciso de ___ para resolver isto.","Preciso de {w} para resolver isto."],
+  ["A minha ___ fica perto do centro.","A minha {w} fica perto do centro."],
+  ["Hoje tivemos uma ___ importante.","Hoje tivemos uma {w} importante."],
+  ["Não tenho a certeza; tenho uma ___.","Não tenho a certeza; tenho uma {w}."],
+  ["A ___ começa às nove.","A {w} começa às nove."]
+]};
+const confusion = {
+"dúvida":["dívida","dúvida"],"dívida":["dúvida","dívida"],"comprimento":["cumprimento","comprimento"],"cumprimento":["comprimento","cumprimento"],
+"descrição":["discrição","descrição"],"discrição":["descrição","discrição"],"eminente":["iminente","eminente"],"iminente":["eminente","iminente"],
+"tráfego":["tráfico","tráfego"],"tráfico":["tráfego","tráfico"],"concelho":["conselho","concelho"],"conselho":["concelho","conselho"],
+"censo":["senso","censo"],"senso":["censo","senso"],"cela":["sela","cela"],"sela":["cela","sela"],
+"acento":["assento","acento"],"assento":["acento","assento"],"comprar":["comparar","comprar"],"comparar":["comprar","comparar"],
+"aprender":["apreender","aprender"],"apreender":["aprender","apreender"],"descriminar":["discriminar","descriminar"],"discriminar":["descriminar","discriminar"],
+"comprido":["cumprido","comprido"],"cumprido":["comprido","cumprido"],"ratificar":["retificar","ratificar"],"retificar":["ratificar","retificar"]
+};
+let correct=0, answered=0, currentQuiz=null, currentWrite=null, quizDone=false, writeDone=false;
+const $=id=>document.getElementById(id);
+function norm(s){return s.toLocaleLowerCase('pt-PT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ')}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function pool(cat){return data.filter(x=>cat==='all'||x.cat===cat)}
+function sampleSentence(item){const t=pick(examples[item.cat]); return t[0].replace('___','<strong>_____</strong>')}
+function sentenceFor(item){const t=pick(examples[item.cat]);return t[0].replace('___','<strong>_____</strong>')}
+function updateStats(){$('correct').textContent=correct;$('answered').textContent=answered;$('accuracy').textContent=answered?Math.round(correct/answered*100)+'%':'—'}
+function record(ok){answered++;if(ok)correct++;updateStats()}
+function makeQuiz(){
+ const arr=pool($('quizCat').value); if(!arr.length)return;
+ currentQuiz=pick(arr); quizDone=false;
+ const template=pick(examples[currentQuiz.cat])[0];
+ $('quizSentence').innerHTML=template.replace('___','<strong>_____</strong>');
+ $('quizFeedback').textContent='';$('quizFeedback').className='feedback';
+ let opts=[];
+ const known=confusion[currentQuiz.word];
+ if(known){opts=known.filter(w=>w!==currentQuiz.word).map(w=>data.find(x=>x.word===w&&x.cat===currentQuiz.cat)||({word:w,es:'',cat:currentQuiz.cat})).slice(0,2)}
+ const same=arr.filter(x=>x.word!==currentQuiz.word&&!opts.some(o=>o.word===x.word));
+ while(opts.length<3&&same.length){const i=Math.floor(Math.random()*same.length);opts.push(same.splice(i,1)[0])}
+ opts=opts.slice(0,3);opts.push(currentQuiz);opts.sort(()=>Math.random()-.5);
+ const box=$('options');box.innerHTML='';
+ opts.forEach(item=>{const b=document.createElement('button');b.textContent=item.word;b.onclick=()=>answerQuiz(item,b);box.appendChild(b)});
+}
+function answerQuiz(item,button){
+ if(quizDone)return;quizDone=true;const ok=item.word===currentQuiz.word;record(ok);
+ [...$('options').children].forEach(b=>{b.disabled=true;if(b.textContent===currentQuiz.word)b.style.borderColor='var(--good)'});
+ $('quizFeedback').textContent=ok?'Muito bem!':'A resposta correta é: '+currentQuiz.word+' — '+currentQuiz.es;
+ $('quizFeedback').className='feedback '+(ok?'good':'bad');
+}
+function makeWrite(){
+ const arr=pool($('writeCat').value);if(!arr.length)return;
+ currentWrite=pick(arr);writeDone=false;
+ const template=pick(examples[currentWrite.cat])[0];
+ $('writeSentence').innerHTML=template.replace('___','<strong>_____</strong>');
+ $('hint').textContent='Pista em espanhol: '+currentWrite.es+' · '+currentWrite.cat.slice(0,-1).toLowerCase();
+ $('typed').value='';$('typed').disabled=false;$('writeFeedback').textContent='';$('writeFeedback').className='feedback';
+}
+$('answerForm').addEventListener('submit',e=>{e.preventDefault();if(writeDone)return;const val=$('typed').value;if(!val.trim()){ $('writeFeedback').textContent='Escreve uma resposta primeiro.';return}
+ writeDone=true;const ok=norm(val)===norm(currentWrite.word);record(ok);
+ $('typed').disabled=true;$('writeFeedback').textContent=ok?'Muito bem!':'Resposta: '+currentWrite.word+' — '+currentWrite.es;$('writeFeedback').className='feedback '+(ok?'good':'bad')});
+$('showQuizAnswer').onclick=()=>{if(!currentQuiz)return;$('quizFeedback').textContent='Solução: '+currentQuiz.word+' — '+currentQuiz.es;$('quizFeedback').className='feedback';};
+$('showWriteAnswer').onclick=()=>{if(!currentWrite)return;$('writeFeedback').textContent='Solução: '+currentWrite.word+' — '+currentWrite.es;$('writeFeedback').className='feedback';};
+$('newQuiz').onclick=makeQuiz;$('nextQuiz').onclick=makeQuiz;$('newWrite').onclick=makeWrite;$('nextWrite').onclick=makeWrite;
+$('quizCat').onchange=makeQuiz;$('writeCat').onchange=makeWrite;
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x===b));
+ ['quiz','write','words'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.view));
+ if(b.dataset.view==='words')renderWords();
+});
+function renderWords(){
+ const q=norm($('search').value);const cat=$('listCat').value;
+ const matches=data.filter(x=>(cat==='all'||x.cat===cat)&&(!q||norm(x.word).includes(q)||norm(x.es).includes(q)));
+ $('count').textContent=matches.length+' palavras';const list=$('wordlist');list.innerHTML='';
+ matches.slice(0,100).forEach(x=>{const d=document.createElement('div');d.className='word';const a=document.createElement('span');a.textContent=x.word+' <'+x.cat.toLowerCase()+'>';const b=document.createElement('span');b.textContent=x.es;d.append(a,b);list.appendChild(d)});
+ if(matches.length>100){const more=document.createElement('p');more.className='small';more.textContent='A mostrar as primeiras 100 correspondências. Refina a pesquisa para encontrar outras.';list.appendChild(more)}
+}
+$('search').oninput=renderWords;$('listCat').onchange=renderWords;
+makeQuiz();makeWrite();updateStats();
+</script>
+</body></html>
