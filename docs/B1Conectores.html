@@ -118,7 +118,7 @@ const exercises = [
 ];
 
 const $ = id => document.getElementById(id);
-let bank=[], index=0, score=0, done=0, streak=0, bestStreak=0, answered=false, mode="choice", errors=[], reviewErrors=false, mixed=true, showingReview=false;
+let bank=[], index=0, score=0, done=0, streak=0, bestStreak=0, answered=false, errors=[], reviewErrors=false, mixed=true, showingReview=false;
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
 function start(review=false){
  bank = review ? errors.slice() : exercises.map(x=>({...x}));
@@ -128,9 +128,9 @@ function start(review=false){
 }
 function render(){
  if(index>=bank.length){finish();return;}
- const q=bank[index];answered=false;mode="choice";
+ const q=bank[index];answered=false;
  $("counter").textContent=`Exercício ${index+1} de ${bank.length}`;
- $("modeLabel").textContent="4 opções";
+ $("modeLabel").textContent="Escolhe 1 de 4";
  $("category").textContent=q.cat;
  $("sentence").textContent=q.dialogue ? q.s : q.s.replace("___","_____");
  $("bar").style.width=`${index/bank.length*100}%`;
@@ -160,9 +160,7 @@ function check(value,button){
  answered=true;done++;
  if(ok){score++;streak++;bestStreak=Math.max(bestStreak,streak);}else{streak=0;errors.push(q);}
  $("score").textContent=score;$("streak").textContent=streak;$("done").textContent=done;
- if(mode==="choice"){
-  [...$("choices").children].forEach(b=>{b.disabled=true;if(norm(b.textContent)===norm(q.a))b.classList.add("correct");else if(b===button&&!ok)b.classList.add("wrong");});
- }
+ [...$("choices").querySelectorAll("button.option")].forEach(b=>{b.disabled=true;if(norm(b.textContent)===norm(q.a))b.classList.add("correct");else if(b===button&&!ok)b.classList.add("wrong");});
  $("feedback").className="feedback "+(ok?"good":"bad");
  $("feedback").textContent="";
  const title=document.createElement("strong");title.textContent=ok?"Muito bem!":"Ainda não.";
