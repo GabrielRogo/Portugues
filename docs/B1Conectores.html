@@ -22,9 +22,11 @@ h1{font-size:1.55rem;line-height:1.12;margin:5px 0}.intro{font-size:.84rem;color
 .options{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .option{font:inherit;font-size:.88rem;text-align:left;background:#fff;border:1px solid #cbd6cd;border-radius:11px;padding:10px;min-height:43px;color:var(--ink);cursor:pointer}
 .option:disabled{opacity:1;cursor:default}.option.correct{background:var(--green2);border-color:#79ad91;color:#174a37}.option.wrong{background:var(--redbg);border-color:#e0a5a2;color:#84222b}
-label{display:block;font-size:.78rem;font-weight:750;margin:8px 0 5px}
-input{font:inherit;font-size:1rem;width:100%;border:1.5px solid #cbd6cd;border-radius:11px;padding:11px 12px;background:white;color:var(--ink);outline:none;min-height:46px}
-input:focus{border-color:var(--green);box-shadow:0 0 0 3px #245b491b}
+ .dialogue{display:grid;gap:7px;margin:8px 0}
+.turn{padding:9px 10px;border-radius:11px;font-size:.9rem;line-height:1.35}
+.turn strong{display:block;font-size:.7rem;letter-spacing:.03em;margin-bottom:2px}
+.turn.a{background:#eaf2ff;border:1px solid #cbdcf8;margin-right:16px}
+.turn.b{background:#f8edff;border:1px solid #e5d1f5;margin-left:16px}
 .actions{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
 button{font:inherit;font-weight:750;border:0;border-radius:11px;padding:11px 13px;min-height:43px;cursor:pointer}
 .primary{background:var(--green);color:white;flex:1}.secondary{background:#edf1ec;color:var(--green)}.subtle{background:transparent;color:var(--muted);padding-inline:8px}
@@ -43,7 +45,7 @@ a.back{display:inline-block;color:var(--green);text-decoration:none;font-size:.8
 <header>
  <div class="eyebrow">Português europeu · B1–B2</div>
  <h1>Conectores</h1>
- <p class="intro">Liga ideias com naturalidade. Atenção: há opções em espanhol e galego que parecem corretas, mas não são português europeu.</p>
+ <p class="intro">Liga ideias com naturalidade. Todos os exercícios têm quatro opções; algumas confundem de propósito com formas do espanhol e do galego.</p>
 </header>
 <div class="stats">
  <div class="stat"><strong id="score">0</strong><span>Certas</span></div>
@@ -57,11 +59,7 @@ a.back{display:inline-block;color:var(--green);text-decoration:none;font-size:.8
  <p class="sentence" id="sentence"></p>
  <div class="note" id="instruction">Escolhe o conector que completa melhor a frase.</div>
  <div id="choices" class="options"></div>
- <form id="typedForm" class="hidden">
-  <label for="answer">Escreve o conector em falta</label>
-  <input id="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Escreve aqui…" enterkeyhint="done">
-  <div class="actions"><button class="primary" type="submit">Confirmar</button><button class="secondary" id="hintBtn" type="button">Pista</button></div>
- </form>
+ <div class="actions"><button class="secondary" id="hintBtn" type="button">Pista</button></div>
  <div id="feedback" class="feedback hidden" aria-live="polite"></div>
  <div class="bottom"><span class="small" id="status">Escolhe a resposta mais natural.</span><button class="subtle hidden" id="nextBtn" type="button">Próxima →</button></div>
  <div class="settings">
@@ -109,13 +107,13 @@ const exercises = [
 {cat:"Espanhol / galego",s:"O relatório é claro. ___, apresenta dados fáceis de confirmar.",a:"Além disso",opts:["Além disso","Ademais de","Además de eso","A máis diso"],why:"«Além disso» é a forma corrente em português europeu."},
 {cat:"Discurso organizado",s:"___, analisaremos as vantagens. Depois, passaremos às limitações.",a:"Para começar",opts:["Para começar","Em conclusão","Apesar disso","Por outro lado de"],why:"«Para começar» abre uma sequência organizada."},
 {cat:"Discurso organizado",s:"Por um lado, a cidade oferece emprego; ___, as rendas são elevadas.",a:"por outro lado",opts:["por outro lado","em suma","por isso","além"],why:"A estrutura correlativa é «por um lado… por outro lado…»."},
-{cat:"Desacordo diplomático",s:"Respeito a tua opinião; ___, vejo a situação de outra forma.",a:"ainda assim",opts:["ainda assim","de acordo","além de","por exemplo que"],why:"«Ainda assim» introduz uma reserva ou contraste sem ser agressivo."},
+{cat:"Discordância diplomática",dialogue:[["Inês","Acho que devemos aceitar a primeira proposta."],["Pedro","Respeito a tua opinião; ___, vejo a situação de outra forma."]],s:"Pedro discorda com respeito. Escolhe o conector adequado.",a:"ainda assim",opts:["ainda assim","de acordo","além de","por exemplo que"],why:"«Ainda assim» introduz uma reserva ou contraste de forma diplomática."},
 {cat:"Síntese",s:"___, precisamos de mais informação antes de tomar uma decisão.",a:"Em conclusão",opts:["Em conclusão","A começar","Por exemplo","Embora"],why:"«Em conclusão» assinala a síntese final."},
 {cat:"Condição",s:"Poderás participar, ___ te inscrevas até sexta-feira.",a:"desde que",opts:["desde que","apesar de","por isso","além disso"],why:"«Desde que» introduz uma condição."},
 {cat:"Explicação",s:"A experiência foi repetida, ___ os primeiros resultados não eram conclusivos.",a:"uma vez que",opts:["uma vez que","no entanto","por fim","em contrapartida"],why:"«Uma vez que» pode introduzir uma explicação ou causa."},
 {cat:"Contraposição",s:"O produto é caro. ___, tem uma garantia de cinco anos.",a:"Por outro lado",opts:["Por outro lado","Por isso","Em primeiro lugar","Além de que não"],why:"«Por outro lado» apresenta outro aspeto da questão."},
-{cat:"Acordo",s:"— Acho que devíamos adiar a reunião. — ___, não temos todos os dados.",a:"Também me parece",opts:["Também me parece","Não estou de acordo","Pelo contrário de","Apesar"],why:"«Também me parece» exprime concordância de forma natural."},
-{cat:"Desacordo",s:"— Esta é a única solução. — Não necessariamente; ___, há outras possibilidades.",a:"na verdade",opts:["na verdade","por conseguinte","em primeiro lugar que","a pesar"],why:"«Na verdade» pode introduzir uma correção ou clarificação."},
+{cat:"Acordo · diálogo",dialogue:[["Ana","Acho que devíamos adiar a reunião."],["Rui","___, ainda não temos todos os dados."]],s:"Escolhe a resposta do Rui que expressa concordância.",a:"Também me parece",opts:["Também me parece","Não estou de acordo","Pelo contrário de","Apesar"],why:"Rui concorda com Ana: «Também me parece» é uma resposta natural."},
+{cat:"Discordância · diálogo",dialogue:[["Joana","Esta é a única solução."],["Miguel","Não necessariamente. ___, há outras possibilidades."]],s:"Escolhe o conector que introduz a correção de Miguel.",a:"Na verdade",opts:["Na verdade","Por conseguinte","Em primeiro lugar que","A pesar"],why:"«Na verdade» pode introduzir uma correção ou clarificação. «A pesar» não é a forma portuguesa: escreve-se «apesar»."},
 {cat:"Adição enfática",s:"O plano reduz os custos e ___ melhora a organização da equipa.",a:"ainda",opts:["ainda","embora","contudo","portanto de"],why:"«E ainda melhora» acrescenta outro benefício."}
 ];
 
@@ -130,22 +128,30 @@ function start(review=false){
 }
 function render(){
  if(index>=bank.length){finish();return;}
- const q=bank[index];answered=false;mode=Math.random()<.5?"choice":"typed";
+ const q=bank[index];answered=false;mode="choice";
  $("counter").textContent=`Exercício ${index+1} de ${bank.length}`;
- $("modeLabel").textContent=mode==="choice"?"Escolha múltipla":"Escreve a resposta";
+ $("modeLabel").textContent="4 opções";
  $("category").textContent=q.cat;
- $("sentence").textContent=q.s.replace("___","_____");
+ $("sentence").textContent=q.dialogue ? q.s : q.s.replace("___","_____");
  $("bar").style.width=`${index/bank.length*100}%`;
  $("feedback").className="feedback hidden";$("feedback").textContent="";
- $("nextBtn").classList.add("hidden");$("answer").value="";
- $("choices").classList.toggle("hidden",mode!=="choice");$("typedForm").classList.toggle("hidden",mode!=="typed");
- $("instruction").textContent=mode==="choice"?"Escolhe o conector que completa melhor a frase.":"Escreve o conector que completa a frase. Não precisas de escrever a frase toda.";
+ $("nextBtn").classList.add("hidden");
+ $("choices").classList.remove("hidden");
+ $("instruction").textContent="Escolhe a opção correta entre as quatro alternativas.";
  $("status").textContent="Lê a frase e pensa na relação entre as ideias.";
- if(mode==="choice"){
-  const opts=shuffle([...q.opts]);
-  $("choices").innerHTML="";
-  opts.forEach(opt=>{const b=document.createElement("button");b.type="button";b.className="option";b.textContent=opt;b.addEventListener("click",()=>check(opt,b));$("choices").appendChild(b);});
- }else{setTimeout(()=>$("answer").focus({preventScroll:true}),60);}
+ const opts=shuffle([...q.opts]);
+ $("choices").innerHTML="";
+ if(q.dialogue){
+   const d=document.createElement("div");d.className="dialogue";
+   q.dialogue.forEach((turn,i)=>{
+     const el=document.createElement("div");el.className="turn "+(i%2===0?"a":"b");
+     const who=document.createElement("strong");who.textContent=turn[0];
+     const line=document.createElement("span");line.textContent=turn[1];
+     el.append(who,line);d.appendChild(el);
+   });
+   $("choices").appendChild(d);
+ }
+ opts.forEach(opt=>{const b=document.createElement("button");b.type="button";b.className="option";b.textContent=opt;b.addEventListener("click",()=>check(opt,b));$("choices").appendChild(b);});
 }
 function norm(s){return s.toLocaleLowerCase("pt-PT").trim().replace(/[.,;:!?]+$/,"").replace(/\s+/g," ");}
 function check(value,button){
@@ -158,11 +164,14 @@ function check(value,button){
   [...$("choices").children].forEach(b=>{b.disabled=true;if(norm(b.textContent)===norm(q.a))b.classList.add("correct");else if(b===button&&!ok)b.classList.add("wrong");});
  }
  $("feedback").className="feedback "+(ok?"good":"bad");
- $("feedback").innerHTML=`<strong>${ok?"Muito bem!":"Ainda não."}</strong>${ok?"":`Resposta correta: <b>${q.a}</b>. `}${q.why}`;
+ $("feedback").textContent="";
+ const title=document.createElement("strong");title.textContent=ok?"Muito bem!":"Ainda não.";
+ $("feedback").appendChild(title);
+ const msg=document.createElement("span");msg.textContent=(ok?"":`Resposta correta: ${q.a}. `)+q.why;
+ $("feedback").appendChild(msg);
  $("nextBtn").classList.remove("hidden");$("status").textContent=ok?"Resposta certa":"Revê a explicação antes de avançar.";
  $("bar").style.width=`${(index+1)/bank.length*100}%`;
 }
-$("typedForm").addEventListener("submit",e=>{e.preventDefault();if(!$("answer").value.trim())return;check($("answer").value);});
 $("nextBtn").addEventListener("click",()=>{index++;render();});
 $("hintBtn").addEventListener("click",()=>{if(answered)return;const q=bank[index];$("feedback").className="feedback hint";$("feedback").textContent="Pista: "+q.why;});
 $("mixBtn").addEventListener("click",()=>{mixed=!mixed;$("mixBtn").classList.toggle("active",mixed);});
